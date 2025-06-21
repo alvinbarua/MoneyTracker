@@ -1,5 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 from dotenv import load_dotenv
@@ -13,16 +15,33 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 # Database Models
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
     budgets = db.relationship('Budget', backref='user', lazy=True, cascade='all, delete-orphan')
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -67,11 +86,94 @@ class Budget(db.Model):
 # Routes
 @app.route('/')
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Check if user already exists
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists. Please choose a different one.')
+            return render_template('register.html')
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered. Please use a different email.')
+            return render_template('register.html')
+        
+        # Create new user
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Registration successful! Please log in.')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            login_user(user)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.')
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    # Get user's recent transactions
+    recent_transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
+    
+    # Calculate basic stats
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    
+    monthly_income = db.session.query(db.func.sum(Transaction.amount)).join(Category).filter(
+        Transaction.user_id == current_user.id,
+        Category.type == 'income',
+        db.extract('month', Transaction.date) == current_month,
+        db.extract('year', Transaction.date) == current_year
+    ).scalar() or 0
+    
+    monthly_expenses = db.session.query(db.func.sum(Transaction.amount)).join(Category).filter(
+        Transaction.user_id == current_user.id,
+        Category.type == 'expense',
+        db.extract('month', Transaction.date) == current_month,
+        db.extract('year', Transaction.date) == current_year
+    ).scalar() or 0
+    
+    return render_template('dashboard.html', 
+                         transactions=recent_transactions,
+                         monthly_income=monthly_income,
+                         monthly_expenses=monthly_expenses,
+                         balance=monthly_income - monthly_expenses)
 
 @app.route('/test-db')
 def test_db():
