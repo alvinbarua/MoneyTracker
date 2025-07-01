@@ -175,6 +175,16 @@ def dashboard():
                          monthly_expenses=monthly_expenses,
                          balance=monthly_income - monthly_expenses)
 
+@app.route('/transactions')
+@login_required
+def transactions():
+    return render_template('transactions.html')
+
+@app.route('/budgets')
+@login_required
+def budgets():
+    return render_template('budgets.html')
+
 # ===============================
 # REST API ENDPOINTS
 # ===============================

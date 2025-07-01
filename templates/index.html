@@ -1,25 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoneyTracker - Personal Finance Manager</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; text-align: center; }
-        h1 { color: #333; }
-        .btn { padding: 10px 20px; margin: 10px; text-decoration: none; background: #007bff; color: white; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to MoneyTracker</h1>
-        <p>Your personal finance management tool</p>
-        <p>Track expenses, set budgets, and take control of your finances</p>
-        <a href="/login" class="btn">Login</a>
-        <a href="/register" class="btn" style="background: #28a745;">Sign Up</a>
-        <br><br>
-        <a href="/about" class="btn" style="background: #6c757d;">Learn More</a>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Home - MoneyTracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <section class="bg-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Take Control of Your Finances</h1>
+                    <p class="lead">Track expenses, set budgets, and achieve your financial goals with MoneyTracker.</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3">
+                            <i class="bi bi-person-plus"></i> Get Started Free
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="bi bi-wallet2 display-1"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col">
+                    <h2 class="display-5 fw-bold">Why Choose MoneyTracker?</h2>
+                    <p class="lead text-muted">Everything you need to manage your personal finances</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-graph-up text-white fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Track Expenses</h5>
+                            <p class="card-text text-muted">Monitor your spending across different categories and see where your money goes.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-piggy-bank text-white fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Set Budgets</h5>
+                            <p class="card-text text-muted">Create monthly budgets for different categories and stay on track.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-pie-chart text-white fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Visual Reports</h5>
+                            <p class="card-text text-muted">Get insights with beautiful charts and detailed financial reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-light py-5">
+        <div class="container text-center">
+            <h3 class="mb-3">Ready to Start Your Financial Journey?</h3>
+            <p class="lead text-muted mb-4">Join thousands of users who have taken control of their finances</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-rocket"></i> Start Tracking Today
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
